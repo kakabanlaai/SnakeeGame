@@ -40,9 +40,16 @@ public class Game extends ApplicationAdapter {
 	public void render () {
 		Gdx.gl.glClearColor(0.0f, 0.0f, 0.1f, 0.5f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		gameStateManager.update(Gdx.graphics.getDeltaTime());
+		gameStateManager.draw();
 	}
 	
 	@Override
 	public void dispose () {
+		gameStateManager.batch.dispose();
+		gameStateManager.renderer.dispose();
+		gameStateManager.titleFont.dispose();
+		gameStateManager.font.dispose();
 	}
 }

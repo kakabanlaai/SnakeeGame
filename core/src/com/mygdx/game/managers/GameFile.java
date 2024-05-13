@@ -2,22 +2,20 @@ package com.mygdx.game.managers;
 
 import com.badlogic.gdx.Gdx;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public enum GameFile {
     MANAGER;
 
+    public GameData gameData;
     private final String filename = "highscores.dat";
 
     public void save() {
         try {
             ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(Paths.get(filename)));
-            out.write(1);
+            out.writeObject(gameData);
             out.flush();
             out.close();
         } catch (IOException e) {
@@ -37,9 +35,10 @@ public enum GameFile {
                 return;
             }
             ObjectInputStream in = new ObjectInputStream(Files.newInputStream(Paths.get(filename)));
+            gameData = (GameData) in.readObject();
             in.close();
 
-        } catch (IOException  e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             Gdx.app.exit();
         }
@@ -52,6 +51,8 @@ public enum GameFile {
 
 
     private void init() {
+        gameData = new GameData();
+        gameData.init();
         save();
     }
 

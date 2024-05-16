@@ -1,7 +1,9 @@
 package com.mygdx.game.level;
 
 import com.mygdx.game.Game;
+import com.mygdx.game.entities.Player;
 import com.mygdx.game.entities.Wall;
+import com.sun.org.apache.xpath.internal.objects.XNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +119,7 @@ class Level2 extends LevelData {
 
         startX = 5;
         startY = 5;
-        nextLevel = null;
+        nextLevel = new Level3();
 
         init();
 
@@ -130,5 +132,34 @@ class Level2 extends LevelData {
         line(0, 13, 0, 18);
         line(19, 1, 19, 6);
         line(19, 13, 19, 18);
+    }
+    class Level3 extends LevelData {
+        public Level3() {
+            walls = new ArrayList<>();
+
+            rows = 20;
+            columns = 20;
+            levelID = 3;
+            fruitToNextLevel = 2;
+
+            startX = 3;
+            startY = 5;
+            nextLevel = null;
+
+            init();
+
+            line(0, 0, 6, 0);
+            line(13, 0, 19, 0);
+            line(0, 19, 6, 19);
+            line(13, 19, 19, 19);
+
+            line(0, 1, 0, 6);
+            line(0, 13, 0, 18);
+            line(19, 1, 19, 6);
+            line(19, 13, 19, 18);
+
+            line(5, 6, 14, 6);
+            line(5, 13, 14, 13);
+        }
     }
 }

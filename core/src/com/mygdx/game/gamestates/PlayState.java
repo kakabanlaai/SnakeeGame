@@ -33,7 +33,11 @@ public class PlayState extends GameState {
     private float tempGameWidth;
     private float tempGameHeight;
 
+    private float moveTimer;
+    private float moveTime;
 
+    private Player player;
+    private List<Tail> body;
     private Apple apple;
 
     private List<Player> extraLives;
@@ -61,9 +65,74 @@ public class PlayState extends GameState {
 
         setupLevel();
 
+        moveTimer = 0;
+        moveTime = 0.1f;
+
+        player = new Player(LevelManager.getGrid());
+
+        extraLives = new ArrayList<>();
+        remainingApples = new Apple(0, -25, false);
+
+        if (getPlayMode() == PlayMode.INFINITE_TAIL) {
+            for (int i = player.getLives(); i > 0; i--) {
+                player.hit();
+            }
+        }
+
+        for (int i = 0; i < player.getLives(); i++) {
+            Player newLive = new Player(LevelManager.getGrid());
+            extraLives.add(newLive);
+        }
+
+        updateExtraLives();
+
+        resetBody();
+    }
+
+    private void resetBody() {
+        player.resetToPosition(
+                LevelManager.getStartX() * LevelManager.getGrid(),
+                LevelManager.getStartY() * LevelManager.getGrid(),
+                LevelManager.getFacing());
+
+        body = new ArrayList<>();
+
+        //factor variables for initialize tail considering orientation
+        int factorX = LevelManager.getFacing() == Player.Facing.UP ||
+                LevelManager.getFacing() == Player.Facing.DOWN ? 0 :
+                LevelManager.getFacing() == Player.Facing.LEFT ? -1 : 1;
+
+        int factorY = LevelManager.getFacing() == Player.Facing.LEFT ||
+                LevelManager.getFacing() == Player.Facing.RIGHT ? 0 :
+                LevelManager.getFacing() == Player.Facing.DOWN ? -1 : 1;
+
+        //add 2 body
+        body.add(new Tail(
+                player.getX() - LevelManager.getGrid() * factorX,
+                player.getY() - LevelManager.getGrid() * factorY));
+
+        body.add(new Tail(
+                body.get(0).getX() - LevelManager.getGrid() * factorX,
+                body.get(0).getY() - LevelManager.getGrid() * factorY));
+
+        body.add(new Tail(
+                body.get(1).getX() - LevelManager.getGrid() * factorX,
+                body.get(1).getY() - LevelManager.getGrid() * factorY));
+
 
     }
 
+    private void updateExtraLives() {
+        if (player.isDead() && !extraLives.isEmpty()) {
+            extraLives.remove(extraLives.size() - 1);
+        }
+
+        //updates the position whatever the board size
+        int i = 0;
+        for (Player extraLive : extraLives) {
+            extraLive.setPosition(Game.WIDTH - 15 - i++ * 20, Game.HEIGHT + 5);
+        }
+    }
 
     private void setupLevel() {
         tempGameWidth = Game.WIDTH;
@@ -82,6 +151,11 @@ public class PlayState extends GameState {
 
         extraLives.forEach(extraLive -> extraLive.draw(sr));
 
+        player.draw(sr);
+
+        //draw body
+        body.forEach(bodyPart -> bodyPart.draw(sr));
+
         if (apple != null) {
             apple.draw(sr);
         }
@@ -95,8 +169,28 @@ public class PlayState extends GameState {
         //get user input
         handleInput();
 
+        moveTimer += dt;
+
+        //if is paused doesn't update the rest
         if (!isPlayTime()) {
             return;
+        }
+
+        //only moves every time defined by moveTime
+        if (moveTimer > moveTime) {
+            moveTimer = 0; //reset timer
+
+            checkCollision();
+
+            //update body position
+            updateBodyPosition();
+
+            //update player
+            player.update(dt);
+
+            player.wrap();
+
+            updatesLives();
         }
 
         //create apple
@@ -111,6 +205,21 @@ public class PlayState extends GameState {
 
     @Override
     public void handleInput() {
+        if (isPlayTime()) {
+            //user preferences input keys
+            switch (GameStateManager.getOptionsKeys()) {
+                case SNAKE://snake perspective
+                    player.setRotateLeft(Gdx.input.isKeyJustPressed(Input.Keys.LEFT));
+                    player.setRotateRight(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT));
+                    break;
+                case PLAYER: //player perspective
+                    player.setLeft(Gdx.input.isKeyJustPressed(Input.Keys.LEFT));
+                    player.setRight(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT));
+                    player.setUp(Gdx.input.isKeyJustPressed(Input.Keys.UP));
+                    player.setDown(Gdx.input.isKeyJustPressed(Input.Keys.DOWN));
+                    break;
+            }
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             playTime = !playTime;
         }
@@ -141,6 +250,71 @@ public class PlayState extends GameState {
         sr.end();
     }
 
+    private void checkCollision() {
+        body.stream().filter(
+                bodyPart -> bodyPart.contains(player.getX(), player.getY())
+        ).forEach(bodyPart -> player.hit());
+
+        LevelManager.getWalls().stream().filter(
+                pWall -> pWall.contains(player.getX(), player.getY())
+        ).forEach(pWall -> player.hit());
+
+        //player to apple
+        if (apple != null) {
+            if (player.eat(apple.contains(player.getX(), player.getY()), apple.getScore())) {
+                if (player.fruitsAte() >= LevelManager.getFruitToNextLevel()) {
+                    // if isn't bonus apple, decreases 10% time to update, increasing speed.
+                    LevelManager.levelUp();
+                    playTime = !playTime; //pause the game
+                    resetBody();
+                    moveTime = 0.1f; // reset speed
+                    Jukebox.MANAGER.play("levelup");
+                }
+                //if fruits is bonus, then the update time increases 10%, decreasing speed.
+                if (apple.isBonus() && getPlayMode() == PlayMode.LEVEL_UP) {
+                    moveTime += moveTime * 0.10f;
+                }
+                // else, each 5 decrease update time, increasing speed.
+                else if (player.fruitsAte() % 5 == 0 && getPlayMode() == PlayMode.LEVEL_UP) {
+                    moveTime += moveTime * -0.10f;
+                }
+                Jukebox.MANAGER.play(apple.isBonus() ? "bonus" : "hiss");
+            }
+
+            if (apple.shouldRemove() || player.isDead())
+                apple = null;
+        }
+
+        updateExtraLives();
+
+    }
+
+    private void updateBodyPosition() {
+        if (!body.isEmpty()) {
+            if (player.hasEat())
+                body.add(new Tail(0, 0));
+
+            for (int i = body.size() - 1; i >= 0; i--) {
+                if (i == 0)
+                    body.get(i).setPosition(player.getX(), player.getY());
+                else
+                    body.get(i).setPosition(body.get(i - 1).getX(), body.get(i - 1).getY());
+            }
+        }
+    }
+
+    private void updatesLives() {
+        if (player.isDead()) {
+            if (player.getLives() < 0) {
+                GameFile.MANAGER.gameData.setTentativeScore((long) player.getScore());
+                gameStateManager.setState(GameStateManager.State.GAME_OVER);
+            } else {
+                resetBody();
+                playTime = !playTime;
+            }
+        }
+    }
+
     private Apple newApple() {
         float x;
         float y;
@@ -151,14 +325,21 @@ public class PlayState extends GameState {
             y = MathUtils.random(LevelManager.getRows() - 1) * LevelManager.getGrid();
 
             // check if space is free
+            containsHead = player.contains(x, y);
 
+            for (Tail bodyPart : body) {
+                containsFruit = bodyPart.contains(x, y);
+                if (containsFruit) {
+                    break; //if contains exit for loop
+                }
+            }
 
             for (Wall pWall : LevelManager.getWalls()) {
                 containsWall = pWall.contains(x, y);
                 if (containsWall)
                     break;
             }
-        } while ( containsFruit || containsWall);
+        } while (containsHead || containsFruit || containsWall);
 
         return new Apple(x, y);
     }
@@ -170,7 +351,7 @@ public class PlayState extends GameState {
                 Game.HEIGHT + 80);
 
         Font.MANAGER.left(sb, font,
-                "Score: " + (int) 0,
+                "Score: " + (int) player.getScore(),
                 0,
                 Game.HEIGHT + 20);
 
@@ -203,7 +384,7 @@ public class PlayState extends GameState {
                     Game.HEIGHT / 2 - 20);
         }
         Font.MANAGER.left(sb, font,
-                "x " + (LevelManager.getFruitToNextLevel() ),
+                "x " + (LevelManager.getFruitToNextLevel() - player.fruitsAte()),
                 22,
                 -12);
     }

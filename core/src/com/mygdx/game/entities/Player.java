@@ -16,6 +16,7 @@ public class Player extends GameObject {
     private boolean eat;
 
     private double score;
+    
     private int lives;
 
     private int fruitAte;
@@ -85,6 +86,29 @@ public class Player extends GameObject {
 
     }
 
+    public void resetToPosition(float x, float y, Facing facing) {
+        rotateLeft = false;
+        rotateRight = false;
+
+        setPosition(x, y);
+        this.facing = facing;
+        switch (facing) {
+            case UP:
+                radians = (float) Math.PI / 2;
+                break;
+            case DOWN:
+                radians = (float) Math.PI * 3 / 2;
+                break;
+            case RIGHT:
+                radians = (float) Math.PI;
+                break;
+            case LEFT:
+                radians = (float) Math.PI * 2;
+        }
+
+        dead = false;
+    }
+
     public boolean setRotateLeft(boolean rotateLeft) {
         if (!this.rotateLeft && !rotateRight) {
             this.rotateLeft = rotateLeft;
@@ -101,6 +125,65 @@ public class Player extends GameObject {
         return false;
     }
 
+    public void setLeft(boolean b) {
+        switch (facing) {
+            case UP:
+                if (setRotateLeft(b) && b)
+                    facing = Facing.LEFT;
+                break;
+            case DOWN:
+                if (setRotateRight(b) && b)
+                    facing = Facing.LEFT;
+                break;
+        }
+    }
+
+    public void setRight(boolean b) {
+        switch (facing) {
+            case DOWN:
+                if (setRotateLeft(b) && b)
+                    facing = Facing.RIGHT;
+                break;
+            case UP:
+                if (setRotateRight(b) && b)
+                    facing = Facing.RIGHT;
+        }
+    }
+
+    public void setUp(boolean b) {
+        switch (facing) {
+            case RIGHT:
+                if (setRotateLeft(b) && b)
+                    facing = Facing.UP;
+                break;
+            case LEFT:
+                if (setRotateRight(b) && b)
+                    facing = Facing.UP;
+                break;
+        }
+    }
+
+    public void setDown(boolean b) {
+        switch (facing) {
+            case LEFT:
+                if (setRotateLeft(b) && b)
+                    facing = Facing.DOWN;
+                break;
+            case RIGHT:
+                if (setRotateRight(b) && b)
+                    facing = Facing.DOWN;
+                break;
+        }
+    }
+
+    public boolean eat(boolean b, int score) {
+        if (b) {
+            this.score += score;
+            fruitAte++;
+            eat = true;
+        }
+        return b;
+    }
 
     public int getLives() {
         return lives;

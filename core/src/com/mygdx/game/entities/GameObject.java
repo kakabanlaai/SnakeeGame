@@ -42,4 +42,19 @@ public abstract class GameObject {
 
     public abstract void draw(ShapeRenderer sr);
 
+    public void wrap() {
+        if (x < 0) {
+            x = Game.WIDTH - width;
+        }
+        if (x > Game.WIDTH - width) {
+            x = 0;
+        }
+        if (y < 0) {
+            y = Game.HEIGHT - height;
+        }
+        if (y > Game.HEIGHT - height) {
+            y = 0;
+        }
+
+    }
 }

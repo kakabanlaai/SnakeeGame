@@ -52,6 +52,11 @@ public class GameStateManager {
                 gameState = new MenuState(this);
                 break;
             case PLAY:
+                Game.setCameraPosition();
+                if (isNewGame())
+                    gameState = new OptionsState(this);
+                else
+                    gameState = new PlayState(this);
                 break;
             case HIGHS_CORES:
                 Game.setCameraPosition();

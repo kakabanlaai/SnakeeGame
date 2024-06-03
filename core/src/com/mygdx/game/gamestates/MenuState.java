@@ -86,7 +86,7 @@ public class MenuState extends GameState {
         // play
         switch (currentItem) {
             case 0:
-//                GameStateManager.startNewGame();
+                GameStateManager.startNewGame();
                 gameStateManager.setState(GameStateManager.State.PLAY);
                 break;
             case 1:

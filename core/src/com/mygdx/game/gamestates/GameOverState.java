@@ -1,7 +1,6 @@
 package com.mygdx.game.gamestates;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -10,6 +9,7 @@ import com.mygdx.game.Game;
 import com.mygdx.game.managers.Font;
 import com.mygdx.game.managers.GameFile;
 import com.mygdx.game.managers.GameStateManager;
+import com.badlogic.gdx.Input.Keys;
 
 public class GameOverState extends GameState {
 

@@ -25,6 +25,9 @@ public enum GameFile {
 
     }
 
+    /**
+     * Loads file width saved high scores.
+     */
     public void load() {
         try {
             if (!saveFileExists()) {
@@ -41,14 +44,16 @@ public enum GameFile {
         }
     }
 
+    private boolean saveFileExists() {
+        File f = new File(filename);
+        return f.exists();
+    }
+
+
     private void init() {
         gameData = new GameData();
         gameData.init();
         save();
     }
 
-    private boolean saveFileExists() {
-        File f = new File(filename);
-        return f.exists();
-    }
 }

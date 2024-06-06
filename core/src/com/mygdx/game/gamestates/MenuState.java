@@ -8,7 +8,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.mygdx.game.Game;
 import com.mygdx.game.managers.Font;
+import com.mygdx.game.managers.GameFile;
 import com.mygdx.game.managers.GameStateManager;
+import com.mygdx.game.managers.Jukebox;
 
 public class MenuState extends GameState {
     private SpriteBatch batch;
@@ -37,6 +39,9 @@ public class MenuState extends GameState {
         font = Font.MANAGER.set(20);
 
         menuItems = new String[]{"Play", "High scores", "Options", "Quit"};
+
+        GameFile.MANAGER.load();
+
     }
 
     @Override
@@ -67,13 +72,16 @@ public class MenuState extends GameState {
     public void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && currentItem > 0) {
             currentItem--;
+            Jukebox.MANAGER.play("select");
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) && currentItem < menuItems.length - 1) {
             currentItem++;
+            Jukebox.MANAGER.play("select");
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             select();
+            Jukebox.MANAGER.play("accept");
         }
     }
 

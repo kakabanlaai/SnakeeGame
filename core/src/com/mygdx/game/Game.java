@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.managers.GameStateManager;
+import com.mygdx.game.managers.Jukebox;
 
 public class Game extends ApplicationAdapter {
 	public static float WIDTH;
@@ -28,6 +29,7 @@ public class Game extends ApplicationAdapter {
 		camera.translate(WIDTH / 2, HEIGHT / 2);
 		cameraPosition = camera.position.cpy();
 
+		loadSounds();
 		gameStateManager = new GameStateManager();
 	}
 
@@ -51,5 +53,15 @@ public class Game extends ApplicationAdapter {
 		gameStateManager.renderer.dispose();
 		gameStateManager.titleFont.dispose();
 		gameStateManager.font.dispose();
+	}
+
+	private void loadSounds() {
+		Jukebox.MANAGER.load("sounds/itemback.wav", "select");
+		Jukebox.MANAGER.load("sounds/itempick.wav", "accept");
+		Jukebox.MANAGER.load("sounds/level-up.wav", "levelup");
+		Jukebox.MANAGER.load("sounds/tick.wav", "bonus");
+		Jukebox.MANAGER.load("sounds/Slide01.wav", "slide1");
+		Jukebox.MANAGER.load("sounds/Slide02.wav", "slide2");
+		Jukebox.MANAGER.load("sounds/hiss2.wav", "hiss");
 	}
 }
